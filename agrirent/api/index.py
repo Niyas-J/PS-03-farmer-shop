@@ -1,10 +1,16 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import random
 
-app = Flask(__name__)
+import os
+
+template_dir = os.path.abspath(os.path.dirname(__file__) + '/../templates')
+static_dir = os.path.abspath(os.path.dirname(__file__) + '/../static')
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 app.secret_key = 'agrirent_super_secret_key'
 
 # Generate 50+ realistic farm equipments
+import urllib.parse
+
 def generate_equipments():
     categories = [
         "Tractors", "Harvesters", "Rotavators", "Sprayers", 
@@ -24,14 +30,19 @@ def generate_equipments():
             price = random.randint(500, 800)
         elif category == "Harvesters":
             price = random.randint(1500, 2500)
-        elif category == "Sprayers" or category == "Water pumps" or category == "Drone sprayers":
+        elif category in ["Sprayers", "Water pumps", "Drone sprayers"]:
             price = random.randint(200, 500)
-        elif category == "Rotavators" or category == "Cultivators" or category == "Seed drills":
+        elif category in ["Rotavators", "Cultivators", "Seed drills"]:
             price = random.randint(400, 700)
         elif category == "Mini transport vehicles":
             price = random.randint(300, 600)
         else:
             price = random.randint(300, 800)
+            
+        # Specific search-based image logic replacing generic photos
+        query = f"{brand} {category} agriculture india farm realistic photography"
+        query_encoded = urllib.parse.quote(query)
+        image_url = f"https://image.pollinations.ai/prompt/{query_encoded}?width=400&height=300&nologo=true&seed={i}"
             
         equipments.append({
             "id": i,
@@ -40,9 +51,7 @@ def generate_equipments():
             "price": price,
             "description": f"Reliable {category.lower()} by {brand}. Well maintained and ready for your farm. High performance guaranteed.",
             "availability": random.choice(["Available", "Available", "Available", "Booked"]),
-            "image": f"https://picsum.photos/400/300?random={i}",
-            # We'll calculate actual lat/lng relative to user on the frontend,
-            # but we pass the offsets here.
+            "image": image_url,
             "lat_offset": (random.random() - 0.5) * 0.05,
             "lng_offset": (random.random() - 0.5) * 0.05
         })
