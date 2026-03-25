@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriRent – Smart Farm Equipment Sharing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Load FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <i class="fa-solid fa-tractor"></i> AgriRent
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="#equipments">Equipments</a></li>
+            {% if session.user %}
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/logout" class="btn-login">Logout ({{ session.user }})</a></li>
+            {% else %}
+                <li><a href="/login" class="btn-login">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Hero & Controls Section -->
+        <h1 style="color: var(--dark-green); margin-bottom: 10px;">Find Smart Fariming Equipment Near You</h1>
+        <p style="color: var(--text-light); margin-bottom: 20px;">Rent tractors, harvesters, drones, and more instantly.</p>
+
+        <div class="controls-area">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search equipment by name or brand...">
+            <select id="categoryFilter" class="filter-select">
+                <option value="All">All Categories</option>
+                <option value="Tractors">Tractors</option>
+                <option value="Harvesters">Harvesters</option>
+                <option value="Rotavators">Rotavators</option>
+                <option value="Sprayers">Sprayers</option>
+                <option value="Cultivators">Cultivators</option>
+                <option value="Seed drills">Seed drills</option>
+                <option value="Power tillers">Power tillers</option>
+                <option value="Threshers">Threshers</option>
+                <option value="Mini transport vehicles">Mini transport vehicles</option>
+                <option value="Water pumps">Water pumps</option>
+                <option value="Drone sprayers">Drone sprayers</option>
+            </select>
+            <button class="btn-primary" onclick="findNearest()"><i class="fa-solid fa-location-crosshairs"></i> Find Nearest</button>
+        </div>
+
+        <!-- Equipment Grid -->
+        <h2 id="equipments" style="margin-top: 2rem; color: var(--text-dark);">Available Equipment</h2>
+        <div class="equipment-grid" id="equipmentList" style="margin-bottom: 3rem;">
+            <!-- Populated via JavaScript -->
+        </div>
+
+        <!-- Real-Time Map -->
+        <h2 style="color: var(--text-dark); margin-bottom: 1rem;">Map View</h2>
+        <div class="map-container">
+            <div id="mapLoader" class="loader">
+                <div class="spinner"></div>
+                <h2>Locating You...</h2>
+                <p>Please allow location access to find nearby equipment.</p>
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="locationAlert" style="display:none; padding:15px; margin-bottom:20px; background-color:#ffeedb; color:#d35400; border-radius:8px; border-left:4px solid #d35400;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Location access denied. Falling back to default location (Bangalore).
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="bookingModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="color: var(--dark-green); margin-bottom: 20px;">Book Equipment</h2>
+            
+            <div class="form-group">
+                <label for="bookDate">Select Date</label>
+                <input type="date" id="bookDate" required>
+            </div>
+            <div class="form-group">
+                <label for="bookTime">Select Time Slot</label>
+                <input type="time" id="bookTime" required>
+            </div>
+            
+            <p id="modalPrice" style="font-size: 1.2rem; font-weight: bold; margin: 15px 0; color: var(--text-dark);"></p>
+            
+            <input type="hidden" id="modalEquipmentId">
+            <input type="hidden" id="modalEquipmentName">
+            
+            <button class="btn-primary" style="width: 100%; font-size: 1.1rem; padding: 1rem;" onclick="submitBooking()">
+                Confirm Booking & WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <!-- Google Maps API - Replace PUT_YOUR_API_KEY_HERE with actual key -->
+    <!-- Added libraries=geometry for distance calculation and spaces for clustering -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDC_x-ZE1ZgJOCfB2_kO7Frp_-x1HQAkzw&libraries=geometry&callback=initApp" async defer></script>
+    
+    <!-- Marker Clusterer UI -->
+    <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

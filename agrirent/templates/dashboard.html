@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AgriRent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Load FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <i class="fa-solid fa-tractor"></i> AgriRent
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/logout" class="btn-login">Logout ({{ session.user }})</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Dashboard Header -->
+        <h1 style="color: var(--dark-green); margin-bottom: 2rem;">Welcome, {{ session.user }}</h1>
+
+        <!-- Booking History Section -->
+        <div class="dashboard-section">
+            <h2 style="color: var(--text-dark); margin-bottom: 1rem;">My Booking History</h2>
+            {% if bookings %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Equipment</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status/Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in bookings %}
+                        <tr>
+                            <td>#{{ book.id }}</td>
+                            <td>{{ book.equipment }}</td>
+                            <td>{{ book.date }}</td>
+                            <td>{{ book.time }}</td>
+                            <td><span class="status-available">Confirmed</span><br>₹{{ book.price }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="color: var(--text-light); text-align: center; padding: 2rem;">You haven't booked any equipment yet.</p>
+            {% endif %}
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/" class="btn-primary" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+                <i class="fa-solid fa-search"></i> Find More Equipment
+            </a>
+        </div>
+    </div>
+</body>
+</html>
