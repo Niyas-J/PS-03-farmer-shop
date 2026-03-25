@@ -1,15 +1,10 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import random
 
-import os
-
-template_dir = os.path.abspath(os.path.dirname(__file__) + '/../templates')
-static_dir = os.path.abspath(os.path.dirname(__file__) + '/../static')
-app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+app = Flask(__name__)
 app.secret_key = 'agrirent_super_secret_key'
 
 # Generate 50+ realistic farm equipments
-import urllib.parse
 
 def generate_equipments():
     categories = [
@@ -39,10 +34,10 @@ def generate_equipments():
         else:
             price = random.randint(300, 800)
             
-        # Specific search-based image logic replacing generic photos
-        query = f"{brand} {category} agriculture india farm realistic photography"
-        query_encoded = urllib.parse.quote(query)
-        image_url = f"https://image.pollinations.ai/prompt/{query_encoded}?width=400&height=300&nologo=true&seed={i}"
+        # User wants to upload directly, use a static placeholder path
+        # Ex: "tractors.jpg", "power_tillers.jpg" based on the category name
+        filename = category.lower().replace(" ", "_") + ".jpg"
+        image_url = f"/static/images/{filename}"
             
         equipments.append({
             "id": i,
