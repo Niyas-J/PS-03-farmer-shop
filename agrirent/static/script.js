@@ -22,7 +22,8 @@ function initApp() {
             () => {
                 showLocationError();
                 setupMap();
-            }
+            },
+            { timeout: 3000, enableHighAccuracy: false, maximumAge: 300000 }
         );
     } else {
         showLocationError();
@@ -243,32 +244,28 @@ async function submitBooking() {
     }
 
     try {
-        const response = await fetch('/book', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ equipment_id: eqId, date, time })
-        });
+        // Fast client-side completion, zero server delay
+        alert(`Booking Confirmed for ${eqName}! You will now be redirected to WhatsApp.`);
 
-        const result = await response.json();
+        // Build WhatsApp link
+        const waNumber = '918217469646'; // Ensure this uses country code properly
+        const msg = `Hello! I would like to book the *${eqName}* on ${date} at ${time}. Can you confirm?`;
+        const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
 
-        if (result.success) {
-            alert(`Booking Confirmed for ${eqName}! You will now be redirected to WhatsApp.`);
+        // Open WA in new tab
+        window.open(waUrl, '_blank');
 
-            // Build WhatsApp link
-            const waNumber = '918217469646'; // Ensure this uses country code properly
-            const msg = `Hello! I would like to book the *${eqName}* on ${date} at ${time}. Can you confirm?`;
-            const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+        closeModal();
 
-            // Open WA in new tab
-            window.open(waUrl, '_blank');
-
-            closeModal();
-            // Refresh equipments to update availability
-            fetchEquipments();
-        } else {
-            alert(result.message);
+        // Update local object to reflect 'Booked' status without reloading
+        const eqToUpdate = equipments.find(e => e.id == eqId);
+        if (eqToUpdate) {
+            eqToUpdate.availability = 'Booked';
         }
+
+        renderMapMarkers();
+        renderEquipmentCards(equipments);
     } catch (err) {
-        alert("Server error occurred!");
+        alert("Client error occurred!");
     }
 }
