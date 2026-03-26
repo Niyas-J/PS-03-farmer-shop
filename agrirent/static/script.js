@@ -12,6 +12,10 @@ function initApp() {
     setupMap();
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    fetchEquipments(); // Populate UI even if map is blocked
+});
+
 function requestUserLocation() {
     document.getElementById('mapLoader').style.display = 'block';
     
@@ -22,8 +26,21 @@ function requestUserLocation() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                 };
-                // Re-initialize map and re-calculate equipment distances via fetchEquipments inside setupMap
+                
+                // Update equipment positions based on new user pos
+                equipments = equipments.map(eq => {
+                    return {
+                        ...eq,
+                        lat: userPos.lat + (Math.random() - 0.5) * 0.02,
+                        lng: userPos.lng + (Math.random() - 0.5) * 0.02,
+                    };
+                });
+                
+                calculateDistances();
+                renderEquipmentCards(equipments);
+                
                 setupMap();
+                document.getElementById('mapLoader').style.display = 'none';
             },
             () => {
                 showLocationError();
@@ -43,6 +60,7 @@ function showLocationError() {
 
 function setupMap() {
     document.getElementById('mapLoader').style.display = 'none';
+    if (typeof google === 'undefined') return; // Safe fallback
 
     map = new google.maps.Map(document.getElementById('map'), {
         center: userPos,
@@ -58,8 +76,10 @@ function setupMap() {
         icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
     });
 
-    // Fetch equipments
-    fetchEquipments();
+    // Check if markers can be clustered
+    if (equipments.length > 0) {
+        renderMapMarkers();
+    }
 }
 
 async function fetchEquipments() {
@@ -89,9 +109,12 @@ async function fetchEquipments() {
         });
 
         calculateDistances();
-        renderMapMarkers();
         renderEquipmentCards(equipments);
         setupFilters();
+        
+        if (typeof google !== 'undefined' && map) {
+            renderMapMarkers();
+        }
     } catch (error) {
         console.error("Error setting equipments:", error);
     }
@@ -99,12 +122,15 @@ async function fetchEquipments() {
 
 // Haversine formula distance or Google Maps Geometry distance
 function calculateDistances() {
+    const R = 6371; // km
     equipments.forEach(eq => {
-        const p1 = new google.maps.LatLng(userPos.lat, userPos.lng);
-        const p2 = new google.maps.LatLng(eq.lat, eq.lng);
-        // Returns distance in meters
-        const dist = google.maps.geometry.spherical.computeDistanceBetween(p1, p2);
-        eq.distance = dist / 1000; // in km
+        const dLat = (eq.lat - userPos.lat) * Math.PI / 180;
+        const dLon = (eq.lng - userPos.lng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(userPos.lat * Math.PI / 180) * Math.cos(eq.lat * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        eq.distance = R * c;
     });
     // Sort by distance initially
     equipments.sort((a, b) => a.distance - b.distance);
