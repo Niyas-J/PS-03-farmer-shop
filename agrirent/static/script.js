@@ -7,9 +7,14 @@ let equipments = [];
 let markers = [];
 let markerCluster = null;
 
-// Initialize Google Maps
+// Initialize Google Maps immediately with default location
 function initApp() {
-    // Attempt to get user location
+    setupMap();
+}
+
+function requestUserLocation() {
+    document.getElementById('mapLoader').style.display = 'block';
+    
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -17,17 +22,18 @@ function initApp() {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                 };
+                // Re-initialize map and re-calculate equipment distances via fetchEquipments inside setupMap
                 setupMap();
             },
             () => {
                 showLocationError();
-                setupMap();
+                document.getElementById('mapLoader').style.display = 'none';
             },
-            { timeout: 3000, enableHighAccuracy: false, maximumAge: 300000 }
+            { timeout: 10000, enableHighAccuracy: true }
         );
     } else {
         showLocationError();
-        setupMap();
+        document.getElementById('mapLoader').style.display = 'none';
     }
 }
 
